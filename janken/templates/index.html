@@ -8,11 +8,11 @@
     <h2>じゃんけんアプリ</h2>
 
     {% if user %}
-        {%if medals%}
-            <p> Welcome {{ user }}{{ medals}} !</p>
-        {%else%}
+        {% if medals %}
+            <p> Welcome {{ user }}{{ medals }} !</p>
+        {% else %}
             <p> Welcome {{ user }} !</p>
-        {%endif%}
+        {% endif %}
         <br>
         <a href="/status">ポイントと勝利数を見る</a> 
         <br>

@@ -45,7 +45,8 @@ def init_db():
         name TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         wins INTEGER NOT NULL,
-        points INTEGER NOT NULL
+        points INTEGER NOT NULL,
+        medals INTEGER NOT NULL DEFAULT 0
     )
     """
     )
@@ -53,7 +54,7 @@ def init_db():
     try:
         password = generate_random_password()
         cur.execute(
-            "INSERT INTO users (name, password, wins, points) VALUES ('admin', ?, 0, 0)",
+            "INSERT INTO users (name, password, wins, points, medals) VALUES ('admin', ?, 0, 0, 0)",
             (password,),
         )
     except sqlite3.IntegrityError:
@@ -67,12 +68,12 @@ def init_db():
         try:
             if name == "KING":
                 cur.execute(
-                    "INSERT INTO users (name, password, wins, points) VALUES (?, ?, 100, 300)",
+                    "INSERT INTO users (name, password, wins, points, medals) VALUES (?, ?, 100, 200, 2)",
                     (name, password),
                 )
             else:
                 cur.execute(
-                    "INSERT INTO users (name, password, wins, points) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO users (name, password, wins, points, medals) VALUES (?, ?, ?, ?, 0)",
                     (name, password, wins, points),
                 )
         except sqlite3.IntegrityError:

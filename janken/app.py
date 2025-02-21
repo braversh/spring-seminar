@@ -16,6 +16,7 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 app.permanent_session_lifetime = timedelta(minutes=30)
 
+
 DATABASE = "app.db"
 
 
@@ -25,9 +26,26 @@ def get_db():
     return conn
 
 
+def get_medal(medals):
+    if medals == 1:
+        return "🥉"
+    elif medals == 2:
+        return "🥈"
+    elif medals == 3:
+        return "🥇"
+
+
+app.jinja_env.filters['get_medal_emoji'] = get_medal
+
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html", user=session.get("user"))
+    if session.get("medals") == 0:
+        return render_template("index.html", user=session.get("user"))
+    else:
+        return render_template("index.html", 
+                               user=session.get("user"), 
+                               medals=get_medal(session.get("medals")))
+
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -47,6 +65,7 @@ def login():
         if user:
             session.permanent = True
             session["user"] = user["name"]
+            session["medals"] = user["medals"]
             return redirect("/", code=303)
         else:
             flash("ユーザ名またはパスワードが違います。", "error")
@@ -192,7 +211,7 @@ def shop():
     user_data = cur.fetchone()
     user_points = user_data["points"] if user_data else 0
 
-    items = {"bronze_medal": 5, "silver_medal": 10, "gold_medal": 1000}
+    items = {"bronze_medal": 10, "silver_medal": 100, "gold_medal": 1000}
 
     if request.method == "POST":
         try:
@@ -205,8 +224,20 @@ def shop():
                         "UPDATE users SET points = points - ? WHERE name = ?",
                         (price, session["user"]),
                     )
+                    if item == "bronze_medal":
+                        user_medals = 1
+                    elif item == "silver_medal":
+                        user_medals = 2
+                    elif item == "gold_medal":
+                        user_medals = 3
+                    cur.execute(
+                        "UPDATE users SET medals = ? WHERE name = ?",
+                        (user_medals, session["user"]),
+                    )
+
                     conn.commit()
                     user_points -= price
+                    session["medals"] = user_medals
                     message = f"{item.replace('_', ' ').title()} を購入しました。"
                 else:
                     message = "ポイントが足りません。"

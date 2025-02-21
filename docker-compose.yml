@@ -1,0 +1,13 @@
+services:
+  janken:
+    build: ./janken/
+    container_name: janken_app
+    ports:
+      - "5001:5000"
+    command: ["bash", "entrypoint.sh"]
+  tutorial:
+    build: ./tutorial/
+    container_name: tutorial_app
+    ports:
+      - "5000:5000"
+    command: ["flask", "run", "--host=0.0.0.0"]

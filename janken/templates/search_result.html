@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>じゃんけんアプリ</title>
+</head>
+<body>
+    {% if rank %}
+        <h2>{{ search_query|safe }} さんの順位は {{ rank }} 位です。</h2>
+    {% else %}
+        <h2>{{ search_query|safe }} さんは参加していません。</h2>
+    {% endif %}
+
+    <br>
+    <a href="/ranking">ランキングへ戻る</a>
+</body>
+</html>

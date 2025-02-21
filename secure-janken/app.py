@@ -54,11 +54,11 @@ def login():
         name = request.form["name"]
         password = request.form["password"]
 
-        query = f"SELECT * FROM users WHERE name = ? AND password = ?"
+        query = f"SELECT * FROM users WHERE name = '{name}' AND password = '{password}'"
 
         conn = get_db()
         cur = conn.cursor()
-        cur.execute(query, (name, password))
+        cur.execute(query)
         user = cur.fetchone()
         conn.close()
 
@@ -108,7 +108,6 @@ def play():
             outcome = "負け"
         else:
             outcome = "引き分け"
-        session["cpu_hand"] = random.randint(0, 2)
 
         return jsonify(
             {"user_hand": user_hand, "cpu_hand": cpu_hand, "outcome": outcome}
@@ -219,7 +218,7 @@ def shop():
             item = request.form.get("item", "")
             price = int(request.form.get("price", 0))
 
-            if item in items:
+            if item in items and price in [10, 100, 1000]:
                 if user_points >= price:
                     cur.execute(
                         "UPDATE users SET points = points - ? WHERE name = ?",

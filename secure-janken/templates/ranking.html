@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>じゃんけんアプリ</title>
+</head>
+<body>
+    <h2>勝利数ランキング</h2>
+
+    <form action="/ranking" method="get">
+        <input type="text" name="q" placeholder="ユーザー名を検索" value="{{ search_query }}">
+        <button type="submit">検索</button>
+    </form>
+
+    <table border="1">
+        <tr>
+            <th>順位</th>
+            <th>ユーザー名</th>
+            <th>勝利数</th>
+        </tr>
+        {% for index in range(ranking_data|length) %}
+            <tr>
+                <td>{{ index + 1 }}</td>
+                <td>{{ ranking_data[index]['name'] }}</td>
+                <td>{{ ranking_data[index]['wins'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/">ホームへ戻る</a>
+</body>
+</html>

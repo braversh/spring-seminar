@@ -11,9 +11,3 @@ services:
     ports:
       - "50001:5000"
     command: ["flask", "run", "--host=0.0.0.0"]
-  secure-janken:
-    build: ./secure-janken/
-    container_name: secure_janken_app
-    ports:
-      - "50002:5000"
-    command: ["bash", "entrypoint.sh"]

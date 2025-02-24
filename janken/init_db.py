@@ -63,7 +63,7 @@ def init_db():
     for name in USER_NAMES:
         password = generate_random_password()
         wins = random.randint(0, 99)
-        points = random.randint(0, 99)  # 99ポイント以下に制限
+        points = random.randint(0, 99)
 
         try:
             if name == "KING":

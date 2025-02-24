@@ -6,12 +6,6 @@
 </head>
 <body>
     <h2>勝利数ランキング</h2>
-
-    <form action="/ranking" method="get">
-        <input type="text" name="q" placeholder="ユーザー名を検索" value="{{ search_query }}">
-        <button type="submit">検索</button>
-    </form>
-
     <table border="1">
         <tr>
             <th>順位</th>
@@ -26,7 +20,12 @@
             </tr>
         {% endfor %}
     </table>
-
+    <br>
+    <h2>ランキング外の検索はこちら！</h2>
+    <form action="/ranking" method="get">
+        <input type="text" name="q" placeholder="ユーザー名を検索" value="{{ search_query }}">
+        <button type="submit">検索</button>
+    </form>
     <br>
     <a href="/">ホームへ戻る</a>
 </body>

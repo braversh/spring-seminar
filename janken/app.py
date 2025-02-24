@@ -15,6 +15,7 @@ import random
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 app.permanent_session_lifetime = timedelta(minutes=30)
+app.config['SESSION_COOKIE_HTTPONLY'] = False
 
 
 DATABASE = "app.db"
@@ -35,17 +36,16 @@ def get_medal(medals):
         return "🥇"
 
 
-app.jinja_env.filters['get_medal_emoji'] = get_medal
-
 @app.route("/", methods=["GET"])
 def index():
     if session.get("medals") == 0:
         return render_template("index.html", user=session.get("user"))
     else:
-        return render_template("index.html", 
-                               user=session.get("user"), 
-                               medals=get_medal(session.get("medals")))
-
+        return render_template(
+            "index.html",
+            user=session.get("user"),
+            medals=get_medal(session.get("medals")),
+        )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -54,11 +54,11 @@ def login():
         name = request.form["name"]
         password = request.form["password"]
 
-        query = f"SELECT * FROM users WHERE name = ? AND password = ?"
+        query = f"SELECT * FROM users WHERE name = '{name}' AND password = '{password}'"
 
         conn = get_db()
         cur = conn.cursor()
-        cur.execute(query, (name, password))
+        cur.execute(query)
         user = cur.fetchone()
         conn.close()
 
@@ -95,7 +95,7 @@ def play():
 
         result = (cpu_hand - user_hand) % 3
         if result == 1:
-            outcome = "勝ち"
+            outcome = "win"
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
@@ -105,10 +105,9 @@ def play():
             conn.commit()
             conn.close()
         elif result == 2:
-            outcome = "負け"
+            outcome = "lose"
         else:
-            outcome = "引き分け"
-        session["cpu_hand"] = random.randint(0, 2)
+            outcome = "draw"
 
         return jsonify(
             {"user_hand": user_hand, "cpu_hand": cpu_hand, "outcome": outcome}
@@ -214,42 +213,35 @@ def shop():
 
     items = {"bronze_medal": 10, "silver_medal": 100, "gold_medal": 1000}
 
-    if request.method == "POST":
+    if request.method != "POST":
+        message = None
+    else:
+        item = request.form.get("item", "")
         try:
-            item = request.form.get("item", "")
             price = int(request.form.get("price", 0))
-
-            if item in items:
-                if user_points >= price:
-                    cur.execute(
-                        "UPDATE users SET points = points - ? WHERE name = ?",
-                        (price, session["user"]),
-                    )
-                    if item == "bronze_medal":
-                        user_medals = 1
-                    elif item == "silver_medal":
-                        user_medals = 2
-                    elif item == "gold_medal":
-                        user_medals = 3
-                    cur.execute(
-                        "UPDATE users SET medals = ? WHERE name = ?",
-                        (user_medals, session["user"]),
-                    )
-
-                    conn.commit()
-                    user_points -= price
-                    session["medals"] = user_medals
-                    message = f"{item.replace('_', ' ').title()} を購入しました。"
-                else:
-                    message = "ポイントが足りません。"
-            else:
-                message = "無効な商品です。"
         except ValueError:
             message = "無効な入力です。"
-    else:
-        message = None
-
+        else:
+            if item not in items:
+                message = "無効な商品です。"
+            elif user_points < price:
+                message = "ポイントが足りません。"
+            else:
+                cur.execute(
+                    "UPDATE users SET points = points - ? WHERE name = ?",
+                    (price, session["user"]),
+                )
+                medals_map = {"bronze_medal": 1, "silver_medal": 2, "gold_medal": 3}
+                cur.execute(
+                    "UPDATE users SET medals = ? WHERE name = ?",
+                    (medals_map[item], session["user"]),
+                )
+                conn.commit()
+                user_points -= price
+                session["medals"] = medals_map[item]
+                message = f"{item.replace('_', ' ').title()} を購入しました。"
     conn.close()
+
     return render_template(
         "shop.html",
         user=session["user"],
